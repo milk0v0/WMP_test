@@ -1,0 +1,6 @@
+
+var msg = "hello world";
+
+module.exports = function() {
+  return 1 + msg
+};

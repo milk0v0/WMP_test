@@ -1,0 +1,8 @@
+/**index.wxss**/
+.div {
+  background-color: red;
+}
+
+.div:active {
+  background-color: blue;
+}

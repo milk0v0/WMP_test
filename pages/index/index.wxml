@@ -1,0 +1,17 @@
+<!--index.wxml-->
+<view class="{{className}}">{{msg}}</view>
+<view wx:for="{{list}}" wx:key="index">{{item}}</view>
+
+<input type="number" value="{{num}}" bindinput="handleInput"/>
+<button bindtap="handleTap" data-operation="1">+1</button>
+<button bindtap="handleTap" data-operation="-1">-1</button>
+<view>{{num}}</view>
+
+<input type="number" model:value="{{num}}" bindinput="noop" />
+
+<image style="width:750rpx;height:100rpx" mode="top" src="https://gimg2.baidu.com/image_search/src=http%3A%2F%2F1812.img.pp.sohu.com.cn%2Fimages%2Fblog%2F2009%2F11%2F18%2F18%2F8%2F125b6560a6ag214.jpg&refer=http%3A%2F%2F1812.img.pp.sohu.com.cn&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1625617984&t=73ca1a1b13cdd05d65f43008eaf33f1e" />
+
+<rich-text nodes="<h1>asdf as as</h1>"></rich-text>
+
+<view>{{handleComp}}</view>
+  
