@@ -14,4 +14,3 @@
 <rich-text nodes="<h1>asdf as as</h1>"></rich-text>
 
 <view>{{handleComp}}</view>
-  

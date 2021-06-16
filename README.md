@@ -99,6 +99,7 @@
 |    enablePullDownRefresh     | boolean  |  false   |                   是否开启当前页面下拉刷新                   |
 |    onReachBottomDistance     |  number  |    50    |        页面上拉触底事件触发时距页面底部距离，单位为px        |
 |        disableScroll         | boolean  |  false   | 设置为 `true` 则页面整体不能上下滚动<br />只在页面配置中有效，无法在 `app.json` 中设置 |
+|       usingComponents        |  Object  |          |                           使用组件                           |
 
 
 
@@ -300,8 +301,6 @@ Page({
 
 
 
-
-
 ## 模板语法
 
 + 模板语法部分，大多与 `Vue` 的使用相同，我将会在下面简单说一下
@@ -353,7 +352,7 @@ Page({
 
 
 
-## 数据赋值 & 事件使用
+## <span id="methods">数据赋值 & 事件使用</span>
 
 + 这里需要注意一下，数据的赋值、方法的传值都是不一样的
 + 简单来说，数据采用的是 `react` 的状态机模式，方法的传值使用的是 标签属性 的方式，希望可以通过下面的例子了解
@@ -424,4 +423,228 @@ Page({
     }
 }
 ```
+
+
+
+## 自定义组件
+
++ 终于到我们最关心的 `Component` 了，一下写这么大一段的代码维护性确实没这么高
++ 还是那个原则，低耦合，高内聚
+
+### 结构
+
++ 结构还是那个结构，由 `json` `wxml` `wxss` `js` 4个文件组成
++ 我们可以在文件夹右键 `新建Component` 快速生成4个文件
++ `.json`
+  + `component`：true - 代表组件
++ `js`
+  + 最外层函数名由页面的 `Page` 变为了 `Component`
+  + `properties`：≈ `props`
+  + 所有自定义事件需要放在 `methods` 内
+
+
+
+### 组件间通信与事件
+
+#### 父传子
+
++ ≈ `props`，名字变成了 `properties`
+
+  ```javascript
+  properties: {
+    props: {
+      type: Array, // 类型
+      value: [] // 默认项
+    }
+  }
+  ```
+
+
+
+#### 子传父
+
++ ≈ `$emit`，名字变成了 `triggerEvent`
+
++ 标签用 `bind+事件名` 接收，所传值在 `e.detail` 内
+
++ 或者你不想记这么多，那就像 `react` 一样把方法也传进去，不过父组件的方法要写在 `data` 里面
+
+  ```javascript
+  this.triggerEvent('change', index);
+  ```
+
+  ```xxml
+  <Com bindchange="handleChange"></Com>
+  ```
+
+
+
+
+### this.selectComponent
+
++ ≈ `this.$children`
++ [文档](https://developers.weixin.qq.com/miniprogram/dev/framework/custom-component/events.html)~
+
+
+
+### 插槽 slot
+
++ 与 `vue` 基本类似
+
+```javascript
+Component({
+  options: {
+    multipleSlots: true // 在组件定义时的选项中启用多slot支持
+  },
+  properties: { /* ... */ },
+  methods: { /* ... */ }
+})
+```
+
+```wxml
+<view class="wrapper">
+  <slot name="before"></slot>
+  <slot name="after"></slot>
+</view>
+```
+
+```wxml
+<!-- 引用组件的页面模板 -->
+<comp>
+  <view slot="before">这里是插入到组件slot name="before"中的内容</view>
+  <view slot="after">这里是插入到组件slot name="after"中的内容</view>
+</comp>
+```
+
+
+
+### 数据监听器
+
++ ≈ `watch`，但他叫 `observers`
+
+```javascript
+Component({
+  data: {
+      numberA: 1,
+      numberB: 2,
+      sum: 3
+  },
+  observers: {
+    'numberA, numberB': function(numberA, numberB) {
+      // 在 numberA 或者 numberB 被设置时，执行这个函数
+      this.setData({
+        sum: numberA + numberB
+      })
+    }
+  }
+})
+```
+
+
+
+### 混入
+
++ ≈ `mixins`，名字变成了 `behaviors`
++ [文档](https://developers.weixin.qq.com/miniprogram/dev/framework/custom-component/behaviors.html)~
+
+```javascript
+module.exports = Behavior({
+  behaviors: [],
+  properties: { },
+  data: { },
+  methods: { },
+  // ...
+})
+```
+
+
+
+### 常用生命周期
+
+| 生命周期 |  vue 对应   |                   描述                   |
+| :------: | :---------: | :--------------------------------------: |
+| created  |   created   |        在组件实例刚刚被创建时执行        |
+| attached | beforeMount |      在组件实例进入页面节点树时执行      |
+|  ready   |   mounted   |       在组件在视图层布局完成后执行       |
+|  moved   |             | 在组件实例被移动到节点树另一个位置时执行 |
+| detached |  destroyed  |    在组件实例被从页面节点树移除时执行    |
+|  error   |             |        每当组件方法抛出错误时执行        |
+
+
+
+### 组件所在页面的生命周期
+
++ 在 `pageLifetimes` 字段定义。
+
+| 生命周期 |    参数     |             描述             |
+| :------: | :---------: | :--------------------------: |
+|   show   |     无      |  组件所在的页面被展示时执行  |
+|   hide   |     无      |  组件所在的页面被隐藏时执行  |
+|  resize  | Object Size | 组件所在的页面尺寸变化时执行 |
+
+```javascript
+Component({
+  pageLifetimes: {
+    show() { },
+    hide() { },
+    resize() { },
+  }
+})
+```
+
+
+
+# WXS
+
++ 在上面的 [事件使用](#methods) 中，我们可以看出，小程序的事件是不可以通过 `methods()` 这样的方式调用的，他的引用数据值也不可以是一个执行函数的返回值
++ 如果我有需求，要这么做的时候怎么办？小程序给我们提供了一个叫 wxs 的东西
++ 这个东西也跟小程序的 渲染与逻辑 双线程通信有关，这个东西走渲染层的线程，所以也称为 辅助渲染，如果有拖拽之类需要频繁改变视图的时候，用它就对咯，会跟手很多
+
+### 语法参考
+
++ 官方说：wxs 是小程序的一套脚本语言，与 js 是不同的语言，有自己的语法
++ 实际使用上，其实与 js 并无两样
++ 它像是一个 **完全不支持ES6** 的 js，也就是说 es5，还是个 **残血版** 的 es5
++ 模块部分，采用的是 `common.js` 的语法，即 `module.exports` 和 `require`
+
+
+
+### wxs 标签
+
++ 我们只需要把 `<wxs>` 看成是 `<script>` 即可
++ 区别是，它有一个 `module` 属性，而 `module` 的值即是 *模板引入变量*
+
+
+
+### 示例
+
+```wxs
+module.exports = {
+  a: 1,
+  b: function (num) { return Math.sqrt(num) }
+}
+```
+
+```wxml
+<!-- 引用的wxs -->
+<wxs src="./tool.wxs" module="tool"></wxs>
+
+<!-- 直接写wxs -->
+<wxs module="ye">
+	module.exports = {
+      ye: '✌'
+    }
+</wxs>
+
+<view>{{tool.a}}</view>
+<view>{{tool.b(123)}}</view>
+<view>{{ye.ye}}</view>
+```
+
+```javascript
+// js 使用 require 导入
+const tool = require('./tool.wxs');
+```
+
+
 

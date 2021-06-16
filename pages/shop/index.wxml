@@ -1,2 +1,6 @@
 <!--pages/shop/index.wxml-->
-<text>pages/shop/index.wxml</text>
+<wxs src="./tool.wxs" module="tool"></wxs>
+
+<Tabs tabs="{{tabs}}" bindchange="handleChange">
+  <view>{{tool.findIndex(tabs)}}</view>
+</Tabs>
